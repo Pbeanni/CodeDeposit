@@ -1,0 +1,306 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                template="/WEB-INF/template.xhtml">
+
+    <ui:define name="title">CRUD</ui:define>
+
+    <ui:define name="content">
+        <div>
+            <h:form>
+                <div class="grid">
+                    <div class="col-12">
+                        <div class="card">
+                            <p:growl id="messages" showDetail="true" />
+
+                            <h5>Agenda</h5>
+                            <p:schedule id="schedule" value="#{atendimentoBean.eventModel}" widgetVar="myschedule" >
+                                <p:ajax event="dateSelect" listener="#{atendimentoBean.onDateSelect}" update="eventDetails" oncomplete="PF('eventDialog').show();" />
+                                <p:ajax event="eventSelect" listener="#{atendimentoBean.onEventSelect}" update="eventDetails" oncomplete="PF('eventDialog').show();" />
+                                <p:ajax event="eventMove" listener="#{atendimentoBean.onEventMove}" update="messages" />
+                                <p:ajax event="eventResize" listener="#{atendimentoBean.onEventResize}" update="messages" />
+                            </p:schedule>
+
+                            <p:dialog widgetVar="eventDialog" header="Agendamento" showEffect="fade" width="350" responsive="true">
+                                <p:outputPanel id="eventDetails" styleClass="ui-fluid">
+                                    <div class="field">
+                                        <p:outputLabel value="#{atendimentoBean.event.title}" />
+                                    </div>
+                                    <div class="field">
+                                        <p:outputLabel for="nome" value="Nome do paciente" />
+                                        <p:inputText id="nome" value="#{atendimentoBean.event.nome}" required="true" />
+                                    </div>
+                                    <div class="field">
+                                        <p:outputLabel for="disc" value="Descrição do atendimento" />
+                                        <p:inputText id="disc" value="#{atendimentoBean.event.disc}"/>
+                                    </div>
+                                    <div class="field">
+                                        <p:outputLabel for="data" value="Data do atendimento" />
+                                        <p:datePicker id="data" value="#{atendimentoBean.event.startDate}" pattern="dd/MM/yyyy" showTime="true" appendTo="@(body)"  />
+                                    </div>
+                                    <div class="field">
+                                        <p:outputLabel for="status">Status</p:outputLabel>
+                                        <p:selectOneRadio id="status" value="#{atendimentoBean.event.status}" layout="responsive" columns="2">
+                                            <f:selectItem itemLabel="Concluido" itemValue="0" />
+                                            <f:selectItem itemLabel="Marcado" itemValue="1" />
+                                            <f:selectItem itemLabel="Presente" itemValue="2" />
+                                            <f:selectItem itemLabel="Faltou" itemValue="3" />
+                                        </p:selectOneRadio>
+                                    </div>
+                                </p:outputPanel>
+                                <f:facet name="footer">
+                                    <p:commandButton id="addButton" update="schedule" value="Save" action="#{atendimentoBean.addEvent}" icon="pi pi-check" oncomplete="PF('myschedule').update();PF('eventDialog').hide();" />
+                                    <p:commandButton id="delButton" value="Delete" action="#{atendimentoBean.deleteEvent}" styleClass="ui-button-danger" icon="pi pi-times" oncomplete="PF('myschedule').update();PF('eventDialog').hide();" />
+                                    <p:commandButton type="reset" value="Reset" styleClass="ui-button-secondary" icon="pi pi-refresh" />
+                                </f:facet>
+                            </p:dialog>
+                        </div>
+                    </div>
+                </div>
+            </h:form>
+        </div>
+        <div>
+            <h:form id="form">
+                <div class="grid crud-demo">
+                    <div class="col-12">
+                        <div class="card">
+                            <p:growl id="messages" showDetail="true" />
+
+                            <p:toolbar styleClass="mb-4">
+                                <p:toolbarGroup>
+                                    <p:commandButton value="New" icon="pi pi-plus" actionListener="#{atendimentoBean.openNew}" update="manage-product-content" oncomplete="PF('manageProductDialog').show()" 
+                                                     styleClass="ui-button-success" style="margin-right: .5rem" />
+                                    <p:commandButton id="delete-products-button" value="#{atendimentoBean.deleteButtonMessage}" icon="pi pi-trash" actionListener="#{crudDemoView.deleteSelectedProducts}" 
+                                                     styleClass="ui-button-danger" disabled="#{!atendimentoBean.hasSelectedAtendimentos()}" update="@this">
+                                        <p:confirm header="Confirmation" message="Delete the selected products?" icon="pi pi-exclamation-triangle" />
+                                    </p:commandButton>
+                                </p:toolbarGroup>
+                            </p:toolbar>
+
+                            <p:dataTable id="dt-products" widgetVar="dtProducts" var="atendimento" value="#{atendimentoBean.atendimentos}" reflow="true" styleClass="products-table"
+                                         selection="#{atendimentoBean.atendimentosSelecionados}" rowKey="#{atendimento.atendimento_id}" paginator="true" rows="10" rowSelectMode="add" paginatorPosition="bottom">
+                                <f:facet name="header">
+                                    <div class="products-table-header">
+                                        <span style="font-weight: bold">Manage Products</span>
+
+                                        <span class="filter-container ui-input-icon-left">
+                                            <i class="pi pi-search"></i>
+                                            <p:inputText id="globalFilter" onkeyup="PF('dtProducts').filter()" placeholder="Search" />
+                                        </span>
+                                    </div>
+                                </f:facet>
+
+                                <p:ajax event="rowToggle" listener="#{crudDemoView.onRowToggle}" />
+                                <p:ajax event="rowSelect" update=":form:delete-products-button" />
+                                <p:ajax event="rowUnselect" update=":form:delete-products-button" />
+                                <p:ajax event="rowSelectCheckbox" update=":form:delete-products-button" />
+                                <p:ajax event="rowUnselectCheckbox" update=":form:delete-products-button" />
+                                <p:ajax event="toggleSelect" update=":form:delete-products-button" />
+
+                                <p:column selectionMode="multiple" exportable="false"></p:column>
+                                <p:column exportable="false">
+                                   <!--<p:rowToggler />-->
+                                </p:column>
+
+                                <p:column headerText="Nome do paciente" sortBy="#{atendimento.nome}" filterBy="#{atendimento.nome}" >
+                                    <f:facet name="filter">
+                                        <p:inputText onkeyup="PF('dtProducts').filter()" />
+                                    </f:facet>
+                                    <h:outputText value="#{atendimento.nome}" />
+                                </p:column>
+                                <p:column headerText="Data marcada" sortBy="#{atendimento.data}" filterBy="#{atendimento.data}">
+                                    <f:facet name="filter">
+                                        <p:datePicker onkeyup="PF('dtProducts').filter()" />
+                                    </f:facet>
+                                    <h:outputText value="#{atendimento.data}" />
+                                </p:column>
+                                <p:column headerText="Status" sortBy="#{atendimento.statusString}" filterBy="#{atendimento.statusString}">
+                                    <f:facet name="filter">
+                                        <p:selectOneMenu onchange="PF('dtProducts').filter()" styleClass="ui-custom-filter">
+                                            <f:selectItem itemLabel="Todos" itemValue="#{null}" noSelectionOption="true" />
+                                            <f:selectItems value="#{['marcado','concluido','presente','faltou']}" />
+                                        </p:selectOneMenu>
+
+                                    </f:facet>
+                                    <h:outputText class="status-#{atendimento.statusString}" value="#{atendimento.statusString}" />
+                                </p:column>
+                                <p:column headerText="Descrição do atendimento" sortBy="#{atendimento.disc}" filterBy="#{atendimento.disc}">
+                                      <f:facet name="filter">
+                                        <p:inputText onkeyup="PF('dtProducts').filter()" />
+                                    </f:facet>
+                                    <h:outputText value="#{atendimento.disc}" />
+                                </p:column>
+                                <p:column exportable="false">
+                                    <p:commandButton icon="pi pi-pencil" update=":form:manage-product-content" oncomplete="PF('manageProductDialog').show()" 
+                                                     styleClass="edit-button rounded-button ui-button-success" process="@this">
+                                        <f:setPropertyActionListener value="#{atendimento}" target="#{atendimentoBean.atendimentoSelecionado}" />
+                                    </p:commandButton>
+                                    <p:commandButton class="ui-button-warning rounded-button" icon="pi pi-trash" process="@this" oncomplete="PF('deleteProductDialog').show()" >
+                                        <f:setPropertyActionListener value="#{atendimento}" target="#{atendimentoBean.atendimentoSelecionado}" />
+                                    </p:commandButton>
+                                </p:column>
+
+
+                            </p:dataTable>
+
+                            <p:dialog header="Detalhes do Atendimento" showEffect="fade" modal="true" widgetVar="manageProductDialog" responsive="true">
+                                <p:outputPanel id="manage-product-content" class="ui-fluid">
+                                    <p:outputPanel rendered="#{not empty atendimentoBean.atendimentoSelecionado}">
+                                        <div class="field">
+                                            <p:outputLabel value="#{atendimentoBean.event.title}" />
+                                        </div>
+                                        <div class="field">
+                                            <p:outputLabel for="nome" value="Nome do paciente" />
+                                            <p:inputText id="nome" value="#{atendimentoBean.atendimentoSelecionado.nome}" required="true" />
+                                        </div>
+                                        <div class="field">
+                                            <p:outputLabel for="disc" value="Descrição do atendimento" />
+                                            <p:inputText id="disc" value="#{atendimentoBean.atendimentoSelecionado.disc}"/>
+                                        </div>
+                                        <div class="field">
+                                            <p:outputLabel for="data" value="Data do atendimento" />
+                                            <p:datePicker id="data" value="#{atendimentoBean.atendimentoSelecionado.data}" pattern="dd/MM/yyyy" showTime="true" appendTo="@(body)"  />
+                                        </div>
+                                        <div class="field">
+                                            <p:outputLabel for="status">Status</p:outputLabel>
+                                            <p:selectOneRadio id="status" value="#{atendimentoBean.atendimentoSelecionado.status}" layout="responsive" columns="2">
+                                                <f:selectItem itemLabel="Marcado" itemValue="0" />
+                                                <f:selectItem itemLabel="Concluido" itemValue="1" />
+                                                <f:selectItem itemLabel="Presente" itemValue="2" />
+                                                <f:selectItem itemLabel="Faltou" itemValue="3" />
+                                            </p:selectOneRadio>
+                                        </div>
+                                    </p:outputPanel>
+                                </p:outputPanel>
+
+                                <f:facet name="footer">
+                                    <p:commandButton value="Save" icon="pi pi-check" actionListener="#{atendimentoBean.mixedPaciente()}" update="manage-product-content" process="manage-product-content @this" />
+                                    <p:commandButton value="Cancel" icon="pi pi-times" onclick="PF('manageProductDialog').hide()" class="ui-button-secondary" />
+                                </f:facet>
+                            </p:dialog> 
+
+                            <p:confirmDialog widgetVar="deleteProductDialog" showEffect="fade" width="300" message="Deletar atendimento?" header="Confirmar" severity="warn">
+                                <p:commandButton value="Yes" icon="pi pi-check" actionListener="#{atendimentoBean.deletarAtendimento()}" process="@this" oncomplete="PF('deleteProductDialog').hide()"/>
+                                <p:commandButton value="No" type="button" styleClass="ui-button-secondary" icon="pi pi-times" onclick="PF('deleteProductDialog').hide()" />
+                            </p:confirmDialog>
+
+                            <p:confirmDialog global="true" showEffect="fade" width="300">
+                                <p:commandButton value="Yes" type="button" styleClass="ui-confirmdialog-yes" icon="pi pi-check" />
+                                <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no ui-button-secondary" icon="pi pi-times" />
+                            </p:confirmDialog>
+                        </div>
+                    </div>
+                </div>
+            </h:form>
+        </div>
+        <div>
+            <div class="col-12">
+                <div class="card">
+
+                    <div class="grid">
+                        <div class="col-5 flex flex-column justify-content-between">
+                            <h:form>
+                                <div class="card">
+                                    <div class="flex justify-content-center mb-2">
+                                        <spam class="font-bold text-lg">Ultimos 10 atendimentos <spam class="status-marcado">marcados</spam> </spam>
+                                    </div>
+                                    <p:dataTable  var="atendimento" value="#{atendimentoBean.listarTop(0)}">
+                                        <p:column headerText="Nome">
+                                            <h:outputText value="#{atendimento.nome}" />
+                                        </p:column>
+
+                                        <p:column headerText="Data marcarda">
+                                            <h:outputText value="#{atendimento.data}" />
+                                        </p:column>
+                                        <p:column class="text-center">
+                                            <p:commandButton icon="pi pi-search-plus" update=":form:manage-product-content" oncomplete="PF('manageProductDialog').show()" 
+                                                             styleClass="edit-button rounded-button ui-button-info" >
+                                                <f:setPropertyActionListener value="#{atendimento}" target="#{atendimentoBean.atendimentoSelecionado}" />
+                                            </p:commandButton>
+                                        </p:column>
+                                    </p:dataTable>
+                                </div>
+                            </h:form>
+                            <h:form>
+                                <div class="card">
+                                    <div class="flex justify-content-center mb-2">
+                                        <spam class="font-bold text-lg">Ultimos 10 atendimentos <spam class="status-concluido">concluidos</spam> </spam>
+                                    </div>
+                                    <p:dataTable  var="atendimento" value="#{atendimentoBean.listarTop(1)}">
+                                        <p:column headerText="Nome">
+                                            <h:outputText value="#{atendimento.nome}" />
+                                        </p:column>
+
+                                        <p:column headerText="Data marcarda">
+                                            <h:outputText value="#{atendimento.data}" />
+                                        </p:column>
+                                        <p:column class="text-center">
+                                            <p:commandButton icon="pi pi-search-plus" update=":form:manage-product-content" oncomplete="PF('manageProductDialog').show()" 
+                                                             styleClass="edit-button rounded-button ui-button-info" >
+                                                <f:setPropertyActionListener value="#{atendimento}" target="#{atendimentoBean.atendimentoSelecionado}" />
+                                            </p:commandButton>
+                                        </p:column>
+                                    </p:dataTable>
+                                </div>
+                            </h:form>
+                        </div>
+                        <div class="col-1">
+                            <p:divider layout="vertical">
+                                <b>OR</b>
+                            </p:divider>
+                        </div>
+                        <div class="col-5 flex flex-column justify-content-between">
+                            <h:form>
+                                <div class="card">
+                                    <div class="flex justify-content-center mb-2">
+                                        <spam class="font-bold text-lg">Ultimos 10 atendimentos <spam class="status-presente">presentes</spam> </spam>
+                                    </div>
+                                    <p:dataTable  var="atendimento" value="#{atendimentoBean.listarTop(2)}">
+                                        <p:column headerText="Nome">
+                                            <h:outputText value="#{atendimento.nome}" />
+                                        </p:column>
+
+                                        <p:column headerText="Data marcarda">
+                                            <h:outputText value="#{atendimento.data}" />
+                                        </p:column>
+                                        <p:column class="text-center">
+                                            <p:commandButton icon="pi pi-search-plus" update=":form:manage-product-content" oncomplete="PF('manageProductDialog').show()" 
+                                                             styleClass="edit-button rounded-button ui-button-info" >
+                                                <f:setPropertyActionListener value="#{atendimento}" target="#{atendimentoBean.atendimentoSelecionado}" />
+                                            </p:commandButton>
+                                        </p:column>
+                                    </p:dataTable>
+                                </div>
+                            </h:form>
+                            <h:form>
+                                <div class="card">
+                                    <div class="flex justify-content-center mb-2">
+                                        <spam class="font-bold text-lg">Ultimos 10 atendimentos <spam class="status-faltou">faltou</spam> </spam>
+                                    </div>
+                                    <p:dataTable  var="atendimento" value="#{atendimentoBean.listarTop(3)}">
+                                        <p:column headerText="Nome">
+                                            <h:outputText value="#{atendimento.nome}" />
+                                        </p:column>
+
+                                        <p:column headerText="Data marcarda">
+                                            <h:outputText value="#{atendimento.data}" />
+                                        </p:column>
+                                        <p:column class="text-center">
+                                            <p:commandButton icon="pi pi-search-plus" update=":form:manage-product-content" oncomplete="PF('manageProductDialog').show()" 
+                                                             styleClass="edit-button rounded-button ui-button-info" >
+                                                <f:setPropertyActionListener value="#{atendimento}" target="#{atendimentoBean.atendimentoSelecionado}" />
+                                            </p:commandButton>
+                                        </p:column>
+                                    </p:dataTable>
+                                </div>
+                            </h:form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </ui:define>
+
+</ui:composition>
